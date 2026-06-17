@@ -1,0 +1,6 @@
+{
+  "name": "Pet Adoption and Matching System",
+  "description": "一個專業的寵物認養、健康數據記錄與AI領養人互動媒合系統，完美串接Firebase資料庫與Gemini AI模型進行智慧配對。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

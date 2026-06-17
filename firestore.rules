@@ -1,0 +1,97 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reusable helpers
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- 1. Pets Collection ---
+    match /pets/{petId} {
+      allow read: if true; // Public adoption portal - reading is open to everyone
+      allow create: if isValidPet(incoming());
+      allow update: if isValidPet(incoming()) && (
+        // Action A: Update status only (e.g., during inquiry submission or matching)
+        (incoming().diff(existing()).affectedKeys().hasOnly(['status'])) ||
+        // Action B: Complete edit of pet fields
+        (incoming().diff(existing()).affectedKeys().hasOnly(['id', 'name', 'type', 'breed', 'age', 'gender', 'description', 'imageUrl', 'status', 'features', 'createdAt']))
+      );
+      allow delete: if true;
+
+      function isValidPet(data) {
+        return data.keys().hasAll(['name', 'type', 'breed', 'status'])
+            && data.name is string && data.name.size() > 0 && data.name.size() <= 200
+            && data.type is string && (data.type == 'Dog' || data.type == 'Cat' || data.type == 'Rabbit')
+            && data.breed is string && data.breed.size() <= 200
+            && data.status is string && (data.status == 'Available' || data.status == 'Pending' || data.status == 'Adopted')
+            && (data.get('id', '') is string && data.get('id', '').size() <= 128)
+            && (data.get('age', '') is string && data.get('age', '').size() <= 100)
+            && (data.get('gender', '') is string && data.get('gender', '').size() <= 50)
+            && (data.get('description', '') is string && data.get('description', '').size() <= 5000)
+            && (data.get('imageUrl', '') is string && data.get('imageUrl', '').size() <= 2048)
+            && (data.get('features', []) is list && data.get('features', []).size() <= 20)
+            && (data.get('createdAt', '') is string);
+      }
+    }
+
+    // --- 2. Health Logs Collection ---
+    match /health_logs/{logId} {
+      allow read: if true; // Required for visitors to inspect standard healthcare histories of adopting pets
+      allow create: if isValidHealthLog(incoming());
+      allow update: if isValidHealthLog(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['weight', 'vaccinationStatus', 'medicalNotes', 'loggedBy'])
+      );
+      allow delete: if true;
+
+      function isValidHealthLog(data) {
+        return data.keys().hasAll(['petId', 'date', 'weight'])
+            && data.petId is string && data.petId.size() <= 128
+            && data.date is string && data.date.size() <= 50
+            && data.weight is number && data.weight >= 0 && data.weight <= 200
+            && (data.get('vaccinationStatus', '') is string && data.get('vaccinationStatus', '').size() <= 1000)
+            && (data.get('medicalNotes', '') is string && data.get('medicalNotes', '').size() <= 5000)
+            && (data.get('loggedBy', '') is string && data.get('loggedBy', '').size() <= 200)
+            && (data.get('createdAt', '') is string);
+      }
+    }
+
+    // --- 3. Match Inquiries Collection ---
+    match /match_inquiries/{inquiryId} {
+      // Allow read/list to signed-in users or anyone in the sandboxed preview environment
+      allow read: if true;
+      allow create: if isValidInquiry(incoming());
+      allow update: if isValidInquiry(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['status'])
+      );
+      allow delete: if true;
+
+      function isValidInquiry(data) {
+        return data.keys().hasAll(['adopterName', 'adopterEmail', 'housing', 'status', 'createdAt'])
+            && data.adopterName is string && data.adopterName.size() > 0 && data.adopterName.size() <= 200
+            && data.adopterEmail is string && data.adopterEmail.size() > 0 && data.adopterEmail.size() <= 200
+            && data.housing is string && data.housing.size() <= 200
+            && data.status is string && (data.status == 'Pending' || data.status == 'Contacted' || data.status == 'Matched' || data.status == 'Declined')
+            && (data.get('petId', '') is string && data.get('petId', '').size() <= 128)
+            && (data.get('petName', '') is string && data.get('petName', '').size() <= 200)
+            && (data.get('adopterPhone', '') is string && data.get('adopterPhone', '').size() <= 100)
+            && (data.get('workingHours', '') is string && data.get('workingHours', '').size() <= 200)
+            && (data.get('activityLevel', '') is string && data.get('activityLevel', '').size() <= 200)
+            && (data.get('hasOtherPets', false) is bool)
+            && (data.get('message', '') is string && data.get('message', '').size() <= 5000)
+            && (data.get('aiScore', 0) is number)
+            && (data.get('aiFeedback', '') is string && data.get('aiFeedback', '').size() <= 10000)
+            && (data.get('createdAt', '') is string);
+      }
+    }
+  }
+}

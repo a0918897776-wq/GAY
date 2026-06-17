@@ -1,0 +1,75 @@
+{
+  "entities": {
+    "pet": {
+      "title": "Pet",
+      "description": "A pet available for adoption with detailed profiles and health records.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier of the pet." },
+        "name": { "type": "string", "description": "Name of the pet." },
+        "type": { "type": "string", "description": "Type of pet (e.g. Dog, Cat, Rabbit)." },
+        "breed": { "type": "string", "description": "Breed of the pet." },
+        "age": { "type": "string", "description": "Age of the pet (e.g. 2 years old, 3 months)." },
+        "gender": { "type": "string", "description": "Gender: Male or Female." },
+        "description": { "type": "string", "description": "Description of the pet's personality and history." },
+        "imageUrl": { "type": "string", "description": "URL or local asset URL of the pet's image." },
+        "status": { "type": "string", "enum": ["Available", "Pending", "Adopted"], "description": "Adoption status." },
+        "features": { "type": "array", "description": "Key characteristics (e.g. Friendly, Active, Independent)." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when records were added." }
+      },
+      "required": ["name", "type", "breed", "status"]
+    },
+    "health_log": {
+      "title": "HealthLog",
+      "description": "A medical or daily health status log for a pet.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identity of the log." },
+        "petId": { "type": "string", "description": "The pet Id this log belongs to." },
+        "date": { "type": "string", "format": "date", "description": "Date of health record." },
+        "weight": { "type": "number", "description": "Pet's weight in kg." },
+        "vaccinationStatus": { "type": "string", "description": "Vaccinations administered." },
+        "medicalNotes": { "type": "string", "description": "Specific health status, medical records, or diet tracking details." },
+        "loggedBy": { "type": "string", "description": "Name of the caretaker who recorded it." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Database entry time." }
+      },
+      "required": ["petId", "date", "weight"]
+    },
+    "match_inquiry": {
+      "title": "MatchInquiry",
+      "description": "An inquiry / questionnaire submitted by a potential adopter for matchmaking.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique inquiry ID." },
+        "petId": { "type": "string", "description": "Target pet ID. Optional if looking for general matches." },
+        "adopterName": { "type": "string", "description": "Name of the prospective adopter." },
+        "adopterEmail": { "type": "string", "description": "Email of the prospective adopter." },
+        "adopterPhone": { "type": "string", "description": "Phone number of the prospective adopter." },
+        "housing": { "type": "string", "description": "Housing environment (e.g. Apartment, House, Yard)." },
+        "workingHours": { "type": "string", "description": "Working hours profile (e.g. Remote, 9-to-5, Frequent travel)." },
+        "activityLevel": { "type": "string", "description": "Active profile of adopter (e.g. High intensity jogging, Medium walks, Low sedentary)." },
+        "hasOtherPets": { "type": "boolean", "description": "Whether commenter has other pets." },
+        "message": { "type": "string", "description": "Personal message about why they want to adopt." },
+        "aiScore": { "type": "number", "description": "Gemini computed correlation score from 0 to 100." },
+        "aiFeedback": { "type": "string", "description": "Gemini generated feedback mapping suitability and care instructions." },
+        "status": { "type": "string", "enum": ["Pending", "Contacted", "Matched", "Declined"], "description": "Processing status of inquiry." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Time of creation." }
+      },
+      "required": ["adopterName", "adopterEmail", "housing", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "pets": {
+      "schema": "pet",
+      "description": "Collection of all pets available or archived."
+    },
+    "health_logs": {
+      "schema": "health_log",
+      "description": "Collection of health logs associated with pets."
+    },
+    "match_inquiries": {
+      "schema": "match_inquiry",
+      "description": "Collection of match inquiries and adopter applications."
+    }
+  }
+}
